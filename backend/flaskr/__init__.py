@@ -132,29 +132,40 @@ def create_app(test_config=None):
             body = request.get_json()
             quiz_category = body.get('quiz_category', None)
             previous_question = body.get('previous_question', None)
-            cat_id = quiz_category['id']
+            cat_id = quiz_category.get('id')
             if (quiz_category is None) or (previous_question is None):
                 abort(400)
 
             if cat_id == 0:
-                selections = Question.query.filter(Question.id.notin_(previous_question)).all()
+                selections = Question.query.all()
 
             else:
-                selections = Question.query.filter(Question.id.notin_(previous_question), Question.category==cat_id).all()
+                selections = Question.query.filter(Question.category==cat_id).all()
 
-            question = None
-            index = random.randrange(0, len(selections))
-            question = selections[index].format()
-                
+           current_questions = [q.format() for q in selections]
+           current_ids = [q.get('id') for q in current_questions]
 
-            return({
-                'success':True,
-                'question': question,
-                'total_questions': len(selections)
+           ids = list(set(current_ids).difference(previous_question))
+
+           if len(ids):
+
+                id_random = random.choice(ids)
+                question = Question.query.filter(Question.id = id_random).one_or_none()
+
+                 return({
+                    'success':True,
+                    'question': question.format(),
+                    
+                })
+           else:
                 
-            })
-        # except:
-        #     abort(422)
+                return({
+                    'success':True,
+                    'question': None,
+                    
+                })
+        except:
+            abort(422)
    
 
     @app.errorhandler(404)
