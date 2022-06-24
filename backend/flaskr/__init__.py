@@ -68,14 +68,15 @@ def create_app(test_config=None):
             question.delete()
             
             return jsonify({
-                'success': True
+                'success': True,
+                'deleted_id': question_id
             })
         except:
             abort(422)
     
 
     @app.route('/questions/add', methods=['POST'])
-    def new_question():
+    def create_new_question():
         body = request.get_json()
         new_question =  body.get('question', None)
         new_answer =  body.get('answer', None)
@@ -86,7 +87,9 @@ def create_app(test_config=None):
             question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
             question.insert()
             return jsonify({
-                'success': True
+                'success': True,
+                'created': question.id,
+                'total_question': len(Question.query.all())
             })
         except:
             abort(400)
@@ -116,13 +119,13 @@ def create_app(test_config=None):
         category  = Category.query.filter(Category.id==category_id).one_or_none()
 
         if category: 
-            questions = Question.query.filter(Question.category==category_id).all()
-            current_questions = paginated_func(request, questions)
+            selection = Question.query.filter(Question.category==category_id).all()
+            curr_questions = paginated_func(request, selection)
         
         return jsonify({
             'success': True,
-            'cagegory': category.type,
-            'questions': current_questions
+            'category': category,
+            # 'questions': curr_questions
         })
     
     @app.route('/quizzes', methods=['POST'])
