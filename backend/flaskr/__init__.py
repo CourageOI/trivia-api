@@ -1,4 +1,5 @@
 import os
+import sys
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -119,25 +120,27 @@ def create_app(test_config=None):
         category  = Category.query.filter(Category.id==category_id).one_or_none()
 
         if category: 
-            selection = Question.query.filter(Question.category==category_id).all()
+            selection = Question.query.filter(Question.category==str(category_id)).all()
             curr_questions = paginated_func(request, selection)
         
-        return jsonify({
-            'success': True,
-            'category': category,
-            # 'questions': curr_questions
-        })
+            return jsonify({
+                'success': True,
+                'category': category_id,
+                'questions': curr_questions
+            })
+
+        else: 
+            abort(404)
     
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
-        # try:
+        try:
 
             body = request.get_json()
             quiz_category = body.get('quiz_category', None)
-            previous_question = body.get('previous_question', None)
-            cat_id = quiz_category.get('id')
-            if (quiz_category is None) or (previous_question is None):
-                abort(400)
+            previous_question = body.get('previous_questions', None)
+            cat_id = quiz_category['id']
+    
 
             if cat_id == 0:
                 selections = Question.query.all()
@@ -145,28 +148,27 @@ def create_app(test_config=None):
             else:
                 selections = Question.query.filter(Question.category==cat_id).all()
 
-           current_questions = [q.format() for q in selections]
-           current_ids = [q.get('id') for q in current_questions]
+            
+            ids = [question.id for question in selections]
+            current_ids = list(set(ids) - set(previous_question))
 
-           ids = list(set(current_ids).difference(previous_question))
+            if len(current_ids) == 0:
+                 current_question = ''
+            else:
 
-           if len(ids):
+                id_random = int(random.choice(ids))
+                current_question = Question.query.filter(Question.id == id_random).one_or_none()
 
-                id_random = random.choice(ids)
-                question = Question.query.filter(Question.id = id_random).one_or_none()
-
-                 return({
+                return jsonify({
                     'success':True,
-                    'question': question.format(),
+                    'question': {
+                        'id': current_question.id,
+                        'question': current_question.question,
+                        'answer': current_question.answer
+                    }
                     
                 })
-           else:
                 
-                return({
-                    'success':True,
-                    'question': None,
-                    
-                })
         except:
             abort(422)
    
@@ -195,5 +197,12 @@ def create_app(test_config=None):
             'message': 'Bad request'
         }), 400 
    
+    @app.errorhandler(500)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 400,
+            'message': 'Server error'
+        }), 500 
     return app
 

@@ -52,7 +52,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['total_questions'])
 
     def test_404_sent_request_beyond_valid_page(self):
-        res = self.client().get('/question?page=1000')
+        res = self.client().get('/questions?page=200000')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -87,7 +87,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['total_search_questions'])
 
     def test_questions_by_category(self):
-        res = self.client().get('/categories/16/questions')
+        res = self.client().get('/categories/5/questions')
         data = json.loads(res.data)
         category = Category.query.filter(Category.id==16).one_or_none()
         self.assertEqual(res.status_code, 200)
@@ -95,12 +95,22 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['category'], category)
 
     def test_questions_by_category(self):
-        res = self.client().get('/categories/16/questions')
+        res = self.client().get('/categories/1/questions')
         data = json.loads(res.data)
-        category = Category.query.filter(Category.id==16).one_or_none()
+        category = Category.query.filter(Category.id==1).one_or_none()
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data.get('success'), True)
-        self.assertEqual(data['category'], category)
+        self.assertEqual(data['category'], 1)
+        self.assertTrue(data['questions'])
+
+    def test_quiz_with_category_and_privious_question(self):
+        res = self.client().post('/quizzes', json={"previous_questions": [13], "quiz_category": {"id": "1", "type": "Science"}})
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data.get('success'), True)
+        self.assertTrue(data['question'])
+
+    
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
