@@ -47,6 +47,21 @@ export FLASK_ENV=development
 flask run 
 ```
 
+ **Installing project dependencies**
+   This project uses NPM to manage software dependencies. NPM Relies on the package.json file located in the `frontend` directory of this repository. After cloning, open your terminal and run:
+
+```bash
+npm install
+```
+### Running Your Frontend in Dev Mode
+
+The frontend app was built using create-react-app. In order to run the app in development mode use `npm start`. You can change the script in the `package.json` file.
+
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser. The page will reload if you make edits.
+
+```bash
+npm start
+```
 
 
 
@@ -71,6 +86,19 @@ You will need to provide detailed documentation of your API endpoints including 
   "5": "Entertainment",
   "6": "Sports"
 }
+```
+
+## Testing
+
+Write at least one test for the success and at least one error behavior of each endpoint using the unittest library.
+
+To deploy the tests, run
+
+```bash
+dropdb trivia_test
+createdb trivia_test
+psql trivia_test < trivia.psql
+python test_flaskr.py
 ```
 
 `GET '/questions'`
@@ -284,15 +312,4 @@ You will need to provide detailed documentation of your API endpoints including 
   "success": true
 }
 
-## Testing
 
-Write at least one test for the success and at least one error behavior of each endpoint using the unittest library.
-
-To deploy the tests, run
-
-```bash
-dropdb trivia_test
-createdb trivia_test
-psql trivia_test < trivia.psql
-python test_flaskr.py
-```
